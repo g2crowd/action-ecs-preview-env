@@ -1,0 +1,14 @@
+{
+  "subnet_ids":[
+    "subnet-team-app-preview"
+  ],
+  "security_groups":[
+    "sg-team-app-preview"
+  ],
+  "cluster":"prenv-ue-cluster",
+  "platform":"1.4.0",
+  "dns": {
+    "hosted_zone":"",
+    "domain":"testing.g2.com"
+  }
+}

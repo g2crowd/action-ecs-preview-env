@@ -1,0 +1,46 @@
+name: Preview Environment on ECS GitHub Action
+description: This is a github actions to provision preview environment on AWS ECS
+
+author: Saurabh Jambhule
+
+branding:
+  color: green
+  icon: airplay
+
+inputs:
+  command:
+    description: Name of the github organisation
+  org:
+    description: Name of the github organisation
+  repo:
+    description: Name of the github repo
+  branch:
+    description: Name of the github branch
+  pr:
+    description: Github pull request number
+  author:
+    description: Name of the commits author
+  image:
+    description: Name of the docker image to deploy
+  sha:
+    description: The sha1 hash of the last commit
+  assume:
+    description: IAM role to be assumed for creating DNS recordset
+
+outputs:
+  success:
+    description: Whether action was successful or not
+
+runs:
+  using: docker
+  image: Dockerfile
+  args:
+    - ${{ inputs.command }}
+    - ${{ inputs.org }}
+    - ${{ inputs.repo }}
+    - ${{ inputs.branch }}
+    - ${{ inputs.pr }}
+    - ${{ inputs.author }}
+    - ${{ inputs.image }}
+    - ${{ inputs.sha }}
+    - ${{ inputs.assume }}
