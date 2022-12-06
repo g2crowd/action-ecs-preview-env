@@ -1,12 +1,13 @@
 import argparse
 import os
-import parser
+import config
 
 import database
 import ecs
 import git
 import route53
 import utils
+import tf
 
 LOGGER = utils.setup_custom_logger("root")
 
@@ -18,7 +19,7 @@ DATABASE_CONFIG = "database_config.json"
 DEPLOYMENT_CONFIG = "deployment_config.json"
 
 
-def deploy(org, repo, branch, pr, author, image, sha, assume):
+def deploy(org, repo, branch, pr, author, image, sha, assume, tfstate):
     ecs_config = CONFIG_FILE_PATH + ECS_CONFIG
     task_definition_config = CONFIG_FILE_PATH + TASK_DEFINITION_CONFIG
     deployment_config = CONFIG_FILE_PATH + DEPLOYMENT_CONFIG
@@ -26,6 +27,8 @@ def deploy(org, repo, branch, pr, author, image, sha, assume):
     dns_name = None
     stack_name = repo + pr
     task_family = "prenv-" + repo + "-" + pr
+    assumed_creds = None
+    tf_outputs = {}
 
     os.environ["PRENV_ORG"] = org
     os.environ["PRENV_REPO"] = repo
@@ -35,17 +38,20 @@ def deploy(org, repo, branch, pr, author, image, sha, assume):
     os.environ["PRENV_IMAGE"] = image
     os.environ["PRENV_SHA"] = sha
     os.environ["PRENV_TASK_FAMILY"] = task_family
+    os.environ["PRENV_STACK_NAME"] = stack_name
 
-    if utils.is_config_exists(ecs_config):
-        subnet_ids, security_groups, cluster, platform = utils.get_ecs_config(
-            ecs_config
-        )
-    else:
+    if tfstate is not None:
+        tf_outputs = tf.get_outputs(None, tfstate)
+
+    if not config.is_config_exists(ecs_config):
         LOGGER.error("ECS configuration file is not available")
         exit(1)
 
-    if utils.is_dns_config_exists(ecs_config):
-        hosted_zone, domain = utils.get_dns_config(ecs_config)
+    ecs_data = config.load_config(ecs_config)
+    ecs_data = config.parse_config(ecs_data, tf_outputs, assumed_creds)
+
+    if ecs_data.get("dns") is not None:
+        hosted_zone, domain = config.get_dns_config(ecs_data)
         dns_name = stack_name + "." + domain
         os.environ["PRENV_DNS_NAME"] = dns_name
     else:
@@ -54,15 +60,19 @@ def deploy(org, repo, branch, pr, author, image, sha, assume):
 
     repo_obj = git.get_repo(org, repo)
 
-    if utils.is_config_exists(database_config):
-        db = database.get_database(database_config, repo_obj, pr)
+    if config.is_config_exists(database_config):
+        db_data = config.load_config(database_config)
+        db_data = config.parse_config(db_data, tf_outputs, assumed_creds)
+        db = database.get_database(db_data, repo_obj, pr)
         for item in db:
             if item != "share":
                 os.environ["PRENV_" + item.upper()] = db[item]
     else:
         LOGGER.info("Database configuration file is not available")
 
-    parser.update_placeholders(task_definition_config, deployment_config)
+    td_data = config.load_config(task_definition_config)
+    td_data = config.parse_config(td_data, tf_outputs, assumed_creds)
+    config.generate_task_def_config_file(td_data, deployment_config)
     ecs.register_task_definition(deployment_config)
 
     git_deploys = git.get_deployment(repo_obj, sha, stack_name)
@@ -74,7 +84,13 @@ def deploy(org, repo, branch, pr, author, image, sha, assume):
             git_deployment = deploy
 
     ip = ecs.deploy(
-        cluster, subnet_ids, security_groups, task_family, stack_name, platform, repo
+        ecs_data["cluster"],
+        ecs_data["subnet_ids"],
+        ecs_data["security_groups"],
+        task_family,
+        stack_name,
+        ecs_data["platform"],
+        repo,
     )
 
     env_url = "" if dns_name is None else str(dns_name)
@@ -85,7 +101,6 @@ def deploy(org, repo, branch, pr, author, image, sha, assume):
     LOGGER.info("Updating github deployment")
     git.update_deployment(git_deployment, deployment_status, "https://" + env_url)
 
-    assumed_creds = None
     if dns_name is not None:
         if assume is not None:
             assumed_creds = utils.assume_aws_role(assume)
@@ -143,6 +158,7 @@ def main(command_line=None):
     prenv_deploy.add_argument("-i", "--image", required=True)
     prenv_deploy.add_argument("-s", "--sha", required=True)
     prenv_deploy.add_argument("-x", "--assume")
+    prenv_deploy.add_argument("-t", "--tfstate")
 
     prenv_undeploy.add_argument("-o", "--org", required=True)
     prenv_undeploy.add_argument("-r", "--repo", required=True)
@@ -162,6 +178,7 @@ def main(command_line=None):
             args.image,
             args.sha,
             args.assume,
+            args.tfstate,
         )
     elif args.command == "undeploy":
         undeploy(args.org, args.repo, args.pr, args.sha, args.assume)

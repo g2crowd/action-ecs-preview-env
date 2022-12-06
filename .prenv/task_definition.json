@@ -2,7 +2,7 @@
   "containerDefinitions":[
     {
       "name":"app",
-      "image":"PRENV_IMAGE",
+      "image":"${env:PRENV_IMAGE}",
       "portMappings":[
         {
           "containerPort":3000,
@@ -46,29 +46,29 @@
         },
         {
           "name":"ADMIN_HOST",
-          "value":"PRENV_DNS_NAME"
+          "value":"${env:PRENV_DNS_NAME}"
         },
         {
           "name":"CANONICAL_HOST",
-          "value":"PRENV_DNS_NAME"
+          "value":"${env:PRENV_DNS_NAME}"
         },
         {
           "name":"DEFAULT_URL_HOST",
-          "value":"PRENV_DNS_NAME"
+          "value":"${env:PRENV_DNS_NAME}"
         },
         {
           "name":"HEROKU_APP_NAME",
-          "value":"PRENV_REPOPRENV_PR"
+          "value":"${env:PRENV_STACK_NAME}"
         },
         {
           "name":"WWW_HOST",
-          "value":"PRENV_DNS_NAME"
+          "value":"${env:PRENV_DNS_NAME}"
         }
       ],
       "secrets":[
         {
           "name":"DATABASE_URL",
-          "valueFrom":"PRENV_DATABASE_URL"
+          "valueFrom":"${env:PRENV_DATABASE_URL}"
         }
       ],
       "logConfiguration":{
@@ -155,9 +155,9 @@
       }
     }
   ],
-  "family":"PRENV_TASK_FAMILY",
-  "taskRoleArn":"arn:aws:iam::my-aws-account-id:role/prenv_role",
-  "executionRoleArn":"arn:aws:iam::my-aws-account-id:role/prenv_role",
+  "family":"${env:PRENV_TASK_FAMILY}",
+  "taskRoleArn":"arn:aws:iam::683046045338:role/ue_role",
+  "executionRoleArn":"arn:aws:iam::683046045338:role/ue_role",
   "networkMode":"awsvpc",
   "requiresCompatibilities":[
     "FARGATE"

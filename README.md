@@ -35,6 +35,7 @@ This is a GitHub action to provision preview environment on AWS ECS.
         author: saurabh
         image: my-image
         sha: db3fa68a6abca7ded16e984aa3cd8f1bd2adc792
+        tfstate: tf-state/prenv/terraform.tfstate
 ```
 
 ### Undeploy
@@ -61,6 +62,7 @@ This is a GitHub action to provision preview environment on AWS ECS.
 * IMAGE (**Required**): Name of image to be deployed
 * SHA (**Required**): Latest commit sha in pull request
 * ASSUME : IAM role to be assumed for creating DNS recordset
+* TFSTATE: Terraform state file S3 path
 
 ### Undeploy
 
@@ -115,6 +117,7 @@ The environment variables prefixed with **PRENV_** can be placed in the task def
 * PRENV_SHA: Latest commit sha in pull request
 * PRENV_TASK_FAMILY: Task definition family name
 * PRENV_DNS_NAME: DNS recordset name
+* PRENV_STACK_NAME: Name of the stack deployed
 * PRENV_DB_<KEY>: Keys defined in database config
 
 ## Permissions

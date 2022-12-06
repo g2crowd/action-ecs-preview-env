@@ -1,14 +1,10 @@
 {
-  "subnet_ids":[
-    "subnet-team-app-preview"
-  ],
-  "security_groups":[
-    "sg-team-app-preview"
-  ],
-  "cluster":"prenv-ue-cluster",
-  "platform":"1.4.0",
+  "subnet_ids":"${tf:private_subnets}",
+  "security_groups":"${tf:ue_security_groups}",
+  "cluster":"${tf:ue_cluser_name}",
+  "platform":"${tf:ecs_platform_version}",
   "dns": {
-    "hosted_zone":"",
-    "domain":"testing.g2.com"
+    "hosted_zone":"${tf:hosted_zone_id}",
+    "domain":"${tf:domain_name}"
   }
 }

@@ -85,8 +85,7 @@ def get_labeled_database(databases, repo, pr_label):
     return databases[pr_label]
 
 
-def get_database(filename, repo, pr):
-    data = utils.load_config(filename)
+def get_database(data, repo, pr):
     pr_label = git.get_pr_label(repo, pr)
 
     if data.get("databases") is None:

@@ -26,6 +26,8 @@ inputs:
     description: The sha1 hash of the last commit
   assume:
     description: IAM role to be assumed for creating DNS recordset
+  tfstate:
+    description: Terraform state file S3 path
 
 outputs:
   success:
@@ -44,3 +46,4 @@ runs:
     - ${{ inputs.image }}
     - ${{ inputs.sha }}
     - ${{ inputs.assume }}
+    - ${{ inputs.tfstate }}
