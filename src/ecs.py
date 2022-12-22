@@ -72,13 +72,10 @@ def get_task_ip(cluster, task_arn):
 
 
 def is_task_running(cluster, task_arn):
-    attemp = 0
+    attempt = 0
     response = None
 
-    while True:
-        if attemp > WAITER_MAXATTEMPTS:
-            LOGGER.error("Task status waiter timeout")
-            break
+    while attempt < WAITER_MAXATTEMPTS:
 
         response = CLIENT.describe_tasks(
             cluster=cluster,
@@ -92,8 +89,10 @@ def is_task_running(cluster, task_arn):
             break
         if response["tasks"][0]["lastStatus"] == "RUNNING":
             return True
+        elif response["tasks"][0]["lastStatus"] == "STOPPED":
+            return False
         time.sleep(WAITER_DELAY)
-        attemp += 1
+        attempt += 1
 
     return False
 

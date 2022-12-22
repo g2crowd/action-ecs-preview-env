@@ -112,7 +112,7 @@ def undeploy(org, repo, pr, sha, assume):
     stack_name = repo + pr
     ecs_config = CONFIG_FILE_PATH + ECS_CONFIG
 
-    subnet_ids, security_groups, cluster, platform = utils.get_ecs_config(ecs_config)
+    subnet_ids, security_groups, cluster, platform = config.get_ecs_config(ecs_config)
     if utils.is_dns_config_exists(ecs_config):
         hosted_zone, domain = utils.get_dns_config(ecs_config)
         dns_name = stack_name + "." + domain
