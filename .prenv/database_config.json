@@ -1,0 +1,8 @@
+{
+  "databases":{
+    "fatmongoose":{
+      "database_url":"arn:aws:ssm:us-east-1:683046045338:parameter/marketplace/staging/ue/fatmongoose/database_url",
+      "share": false
+    }
+  }
+}

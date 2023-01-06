@@ -1,0 +1,10 @@
+{
+  "subnet_ids":"${tf:private_subnets}",
+  "security_groups":"${tf:ue_security_groups}",
+  "cluster":"${tf:ue_cluser_name}",
+  "platform":"${tf:ecs_platform_version}",
+  "dns": {
+    "hosted_zone":"${tf:hosted_zone_id}",
+    "domain":"${tf:domain_name}"
+  }
+}
