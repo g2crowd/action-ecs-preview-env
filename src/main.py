@@ -40,6 +40,9 @@ def deploy(org, repo, branch, pr, author, image, sha, assume, tfstate):
     os.environ["PRENV_TASK_FAMILY"] = task_family
     os.environ["PRENV_STACK_NAME"] = stack_name
 
+    for item, value in os.environ.items():
+        print('{}: {}'.format(item, value))
+
     if tfstate is not None:
         tf_outputs = tf.get_outputs(None, tfstate)
 
@@ -107,17 +110,35 @@ def deploy(org, repo, branch, pr, author, image, sha, assume, tfstate):
         route53.update_recordset(assumed_creds, hosted_zone, dns_name, ip)
 
 
-def undeploy(org, repo, pr, sha, assume):
+def undeploy(org, repo, pr, sha, assume, tfstate):
+    ecs_config = CONFIG_FILE_PATH + ECS_CONFIG
     task_family = "prenv-" + repo + "-" + pr
     stack_name = repo + pr
-    ecs_config = CONFIG_FILE_PATH + ECS_CONFIG
+    assumed_creds = None
+    tf_outputs = {}
 
-    subnet_ids, security_groups, cluster, platform = config.get_ecs_config(ecs_config)
-    if utils.is_dns_config_exists(ecs_config):
-        hosted_zone, domain = utils.get_dns_config(ecs_config)
+    if tfstate is not None:
+        tf_outputs = tf.get_outputs(None, tfstate)
+        print(print)
+
+    if not config.is_config_exists(ecs_config):
+        LOGGER.error("ECS configuration file is not available")
+        exit(1)
+
+    ecs_data = config.load_config(ecs_config)
+    ecs_data = config.parse_config(ecs_data, tf_outputs, assumed_creds)
+
+    if ecs_data.get("dns") is not None:
+        hosted_zone, domain = config.get_dns_config(ecs_data)
         dns_name = stack_name + "." + domain
-    repo_obj = git.get_repo(org, repo)
+        os.environ["PRENV_DNS_NAME"] = dns_name
 
+    cluster = ecs_data["cluster"]
+    subnet_ids = ecs_data["subnet_ids"]
+    security_groups = ecs_data["security_groups"]
+    platform = ecs_data["platform"]
+
+    repo_obj = git.get_repo(org, repo)
     ip = ecs.undeploy(cluster, stack_name, task_family)
 
     label = git.get_pr_label(repo_obj, pr)
@@ -165,6 +186,7 @@ def main(command_line=None):
     prenv_undeploy.add_argument("-p", "--pr", required=True)
     prenv_undeploy.add_argument("-s", "--sha", required=True)
     prenv_undeploy.add_argument("-x", "--assume")
+    prenv_undeploy.add_argument("-t", "--tfstate")
 
     args = parser.parse_args(command_line)
 
@@ -181,7 +203,7 @@ def main(command_line=None):
             args.tfstate,
         )
     elif args.command == "undeploy":
-        undeploy(args.org, args.repo, args.pr, args.sha, args.assume)
+        undeploy(args.org, args.repo, args.pr, args.sha, args.assume, args.tfstate)
     elif args.command == "cleanup":
         cleanup()
 

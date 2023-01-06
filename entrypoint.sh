@@ -6,7 +6,7 @@ RESULT="false"
 if [ "$1" = "deploy" ]; then
   python /src/main.py "$1" --org "$2" --repo "$3" --branch "$4" --pr "$5" --author "$6" --image "$7" --sha "$8" --assume "$9" --tfstate "${10}"
 elif [ "$1" = "undeploy" ]; then
-  python /src/main.py "$1" --org "$2" --repo "$3" --pr "$5" --sha "$8" --assume "$9"
+  python /src/main.py "$1" --org "$2" --repo "$3" --pr "$5" --sha "$8" --assume "$9" --tfstate "${10}"
 else
    echo "[error] Unknown command"
    exit 1
