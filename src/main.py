@@ -29,7 +29,6 @@ def deploy(org, repo, branch, pr, author, image, sha, assume, tfstate):
     task_family = "prenv-" + repo + "-" + pr
     assumed_creds = None
     tf_outputs = {}
-
     os.environ["PRENV_ORG"] = org
     os.environ["PRENV_REPO"] = repo
     os.environ["PRENV_BRANCH"] = branch
@@ -41,7 +40,7 @@ def deploy(org, repo, branch, pr, author, image, sha, assume, tfstate):
     os.environ["PRENV_STACK_NAME"] = stack_name
 
     for item, value in os.environ.items():
-        print('{}: {}'.format(item, value))
+        print("{}: {}".format(item, value))
 
     if tfstate is not None:
         tf_outputs = tf.get_outputs(None, tfstate)
@@ -61,12 +60,29 @@ def deploy(org, repo, branch, pr, author, image, sha, assume, tfstate):
         LOGGER.info("Recordset configuration file is not available")
         LOGGER.info("The DNS reocord will not be created")
 
+    env_url = "" if dns_name is None else str(dns_name)
     repo_obj = git.get_repo(org, repo)
+    git_deploys = git.get_deployment(repo_obj, sha, stack_name)
+    if git_deploys.totalCount == 0:
+        git.create_environment(org, repo, stack_name)
+        git_deployment = git.create_deployment(repo_obj, sha, stack_name, author)
+    else:
+        for deploy in git_deploys:
+            git_deployment = deploy
 
     if config.is_config_exists(database_config):
         db_data = config.load_config(database_config)
         db_data = config.parse_config(db_data, tf_outputs, assumed_creds)
         db = database.get_database(db_data, repo_obj, pr)
+        if db is None:
+            LOGGER.error("Databases are not available")
+            deployment_status = "failure"
+            LOGGER.info("Updating github deployment")
+            git.update_deployment(
+                git_deployment, deployment_status, "https://" + env_url
+            )
+            exit(1)
+
         for item in db:
             if item != "share":
                 os.environ["PRENV_" + item.upper()] = db[item]
@@ -78,14 +94,6 @@ def deploy(org, repo, branch, pr, author, image, sha, assume, tfstate):
     config.generate_task_def_config_file(td_data, deployment_config)
     ecs.register_task_definition(deployment_config)
 
-    git_deploys = git.get_deployment(repo_obj, sha, stack_name)
-    if git_deploys.totalCount == 0:
-        git.create_environment(org, repo, stack_name)
-        git_deployment = git.create_deployment(repo_obj, sha, stack_name, author)
-    else:
-        for deploy in git_deploys:
-            git_deployment = deploy
-
     ip = ecs.deploy(
         ecs_data["cluster"],
         ecs_data["subnet_ids"],
@@ -96,9 +104,7 @@ def deploy(org, repo, branch, pr, author, image, sha, assume, tfstate):
         repo,
     )
 
-    env_url = "" if dns_name is None else str(dns_name)
     deployment_status = "success"
-
     if ip is None:
         deployment_status = "failure"
     LOGGER.info("Updating github deployment")

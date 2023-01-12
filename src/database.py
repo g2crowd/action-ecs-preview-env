@@ -59,8 +59,7 @@ def get_available_database(databases, repo, pr):
 
     available_dbs = utils.merge_dicts(available_dbs, get_shareble_dbs(databases))
     if len(available_dbs) == 0:
-        LOGGER.error("Databases are not available")
-        exit(1)
+        return None
 
     db = select_random_db(available_dbs)
     git.set_label(repo, pr, db)
