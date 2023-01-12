@@ -1,6 +1,6 @@
-import boto3
 import logging
 
+import boto3
 
 LOGGER = logging.getLogger("root")
 

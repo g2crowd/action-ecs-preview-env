@@ -1,13 +1,13 @@
 import argparse
 import os
-import config
 
+import config
 import database
 import ecs
 import git
 import route53
-import utils
 import tf
+import utils
 
 LOGGER = utils.setup_custom_logger("root")
 
@@ -19,8 +19,7 @@ DATABASE_CONFIG = "database_config.json"
 DEPLOYMENT_CONFIG = "deployment_config.json"
 
 
-def deploy(org, repo, branch, pr, author, image, sha, assume, tfstate):
-    ecs_config = CONFIG_FILE_PATH + ECS_CONFIG
+def deploy(ecs_data, org, repo, branch, pr, author, image, sha, assume, tf_outputs):
     task_definition_config = CONFIG_FILE_PATH + TASK_DEFINITION_CONFIG
     deployment_config = CONFIG_FILE_PATH + DEPLOYMENT_CONFIG
     database_config = CONFIG_FILE_PATH + DATABASE_CONFIG
@@ -28,7 +27,6 @@ def deploy(org, repo, branch, pr, author, image, sha, assume, tfstate):
     stack_name = repo + pr
     task_family = "prenv-" + repo + "-" + pr
     assumed_creds = None
-    tf_outputs = {}
     os.environ["PRENV_ORG"] = org
     os.environ["PRENV_REPO"] = repo
     os.environ["PRENV_BRANCH"] = branch
@@ -41,16 +39,6 @@ def deploy(org, repo, branch, pr, author, image, sha, assume, tfstate):
 
     for item, value in os.environ.items():
         print("{}: {}".format(item, value))
-
-    if tfstate is not None:
-        tf_outputs = tf.get_outputs(None, tfstate)
-
-    if not config.is_config_exists(ecs_config):
-        LOGGER.error("ECS configuration file is not available")
-        exit(1)
-
-    ecs_data = config.load_config(ecs_config)
-    ecs_data = config.parse_config(ecs_data, tf_outputs, assumed_creds)
 
     if ecs_data.get("dns") is not None:
         hosted_zone, domain = config.get_dns_config(ecs_data)
@@ -116,23 +104,10 @@ def deploy(org, repo, branch, pr, author, image, sha, assume, tfstate):
         route53.update_recordset(assumed_creds, hosted_zone, dns_name, ip)
 
 
-def undeploy(org, repo, pr, sha, assume, tfstate):
-    ecs_config = CONFIG_FILE_PATH + ECS_CONFIG
+def undeploy(ecs_data, org, repo, pr, sha, assume, tf_outputs):
     task_family = "prenv-" + repo + "-" + pr
     stack_name = repo + pr
     assumed_creds = None
-    tf_outputs = {}
-
-    if tfstate is not None:
-        tf_outputs = tf.get_outputs(None, tfstate)
-        print(print)
-
-    if not config.is_config_exists(ecs_config):
-        LOGGER.error("ECS configuration file is not available")
-        exit(1)
-
-    ecs_data = config.load_config(ecs_config)
-    ecs_data = config.parse_config(ecs_data, tf_outputs, assumed_creds)
 
     if ecs_data.get("dns") is not None:
         hosted_zone, domain = config.get_dns_config(ecs_data)
@@ -140,9 +115,6 @@ def undeploy(org, repo, pr, sha, assume, tfstate):
         os.environ["PRENV_DNS_NAME"] = dns_name
 
     cluster = ecs_data["cluster"]
-    subnet_ids = ecs_data["subnet_ids"]
-    security_groups = ecs_data["security_groups"]
-    platform = ecs_data["platform"]
 
     repo_obj = git.get_repo(org, repo)
     ip = ecs.undeploy(cluster, stack_name, task_family)
@@ -196,8 +168,20 @@ def main(command_line=None):
 
     args = parser.parse_args(command_line)
 
+    tf_outputs = {}
+    if args.tfstate is not None:
+        tf_outputs = tf.get_outputs(None, args.tfstate)
+
+    ecs_config = CONFIG_FILE_PATH + ECS_CONFIG
+    if not config.is_config_exists(ecs_config):
+        LOGGER.error("ECS configuration file is not available")
+        exit(1)
+    ecs_data = config.load_config(ecs_config)
+    ecs_data = config.parse_config(ecs_data, tf_outputs, None)
+
     if args.command == "deploy":
         deploy(
+            ecs_data,
             args.org,
             args.repo,
             args.branch,
@@ -206,10 +190,12 @@ def main(command_line=None):
             args.image,
             args.sha,
             args.assume,
-            args.tfstate,
+            tf_outputs,
         )
     elif args.command == "undeploy":
-        undeploy(args.org, args.repo, args.pr, args.sha, args.assume, args.tfstate)
+        undeploy(
+            ecs_data, args.org, args.repo, args.pr, args.sha, args.assume, tf_outputs
+        )
     elif args.command == "cleanup":
         cleanup()
 

@@ -1,6 +1,4 @@
-import json
 import logging
-import os.path
 
 import boto3
 
@@ -23,12 +21,6 @@ def merge_dicts(source, target):
     result = source.copy()
     result.update(target)
     return result
-
-
-def compare_files(source_filename, target_filename):
-    source = load_config(source_filename)
-    target = load_config(target_filename)
-    print(sorted(source.items()) == sorted(target.items()))
 
 
 def assume_aws_role(role):
