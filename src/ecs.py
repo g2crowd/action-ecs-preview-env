@@ -3,6 +3,7 @@ import subprocess
 import time
 
 import boto3
+import utils
 
 LOGGER = logging.getLogger("root")
 CLIENT = boto3.client("ecs")
@@ -149,6 +150,8 @@ def deploy(
         platform,
         project,
     )
+    utils.export_env("TASK_ARN", deployed_task)
+
     if not ok:
         LOGGER.error("Deployment failed")
         return None

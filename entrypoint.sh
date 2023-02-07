@@ -17,5 +17,8 @@ if [ $BUILD_RESULT -eq 0 ]; then
   RESULT="true"
 fi
 
+export $(cat .env.prenv | xargs)
 echo $RESULT
-echo ::set-output name=release_freeze::$RESULT
+echo $TASK_ARN
+echo ::set-output name=success::$RESULT
+echo ::set-output name=task_arn::$TASK_ARN

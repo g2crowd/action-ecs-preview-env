@@ -32,6 +32,8 @@ inputs:
 outputs:
   success:
     description: Whether action was successful or not
+  task_arn:
+    description: ARN of the task deployed
 
 runs:
   using: docker

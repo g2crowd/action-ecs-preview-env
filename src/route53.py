@@ -20,7 +20,6 @@ def init_client(assumed_creds):
 
 def update_recordset(assumed_creds, hosted_zone, dns_name, ip):
     LOGGER.info("Setting DNS recordset")
-    print(dns_name + ": " + ip)
 
     client = init_client(assumed_creds)
     client.change_resource_record_sets(
