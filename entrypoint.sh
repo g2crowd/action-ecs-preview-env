@@ -17,7 +17,7 @@ if [ $BUILD_RESULT -eq 0 ]; then
   RESULT="true"
 fi
 
-export $(cat .env.prenv | xargs)
+export $(cat .prenv_vars | xargs)
 echo $RESULT
 echo $TASK_ARN
 echo ::set-output name=success::$RESULT
