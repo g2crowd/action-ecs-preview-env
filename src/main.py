@@ -98,7 +98,7 @@ def deploy(ecs_data, org, repo, branch, pr, author, image, sha, assume, tf_outpu
     LOGGER.info("Updating github deployment")
     git.update_deployment(git_deployment, deployment_status, "https://" + env_url)
 
-    if dns_name is not None:
+    if dns_name is not None and ip is not None:
         if assume is not None:
             assumed_creds = utils.assume_aws_role(assume)
         route53.update_recordset(assumed_creds, hosted_zone, dns_name, ip)
