@@ -150,7 +150,7 @@ def run_task(
 
 
 def deploy(
-    cluster, subnets, security_groups, task_definition, started_by, platform, project
+    cluster, subnets, security_groups, task_definition, started_by, platform, project, public_ip
 ):
     LOGGER.info("Deploying preview environment")
     existing_tasks = get_existing_deploy(cluster, started_by)
@@ -162,6 +162,7 @@ def deploy(
         started_by,
         platform,
         project,
+        public_ip
     )
     utils.export_env("TASK_ARN", deployed_task)
 

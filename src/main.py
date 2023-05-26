@@ -41,6 +41,9 @@ def deploy(ecs_data, org, repo, branch, pr, author, image, sha, assume, tf_outpu
     for item, value in os.environ.items():
         print("{}: {}".format(item, value))
 
+    if ecs_data.get("public_ip") is None:
+        ecs_data["public_ip"] = "DISABLED"
+
     if ecs_data.get("dns") is not None:
         hosted_zone, domain = config.get_dns_config(ecs_data)
         dns_name = stack_name + "." + domain
