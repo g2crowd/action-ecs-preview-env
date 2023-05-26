@@ -3,6 +3,7 @@ import os
 
 import config
 import database
+import ec2
 import ecs
 import git
 import route53
@@ -82,7 +83,7 @@ def deploy(ecs_data, org, repo, branch, pr, author, image, sha, assume, tf_outpu
     config.generate_task_def_config_file(td_data, deployment_config)
     ecs.register_task_definition(deployment_config)
 
-    ip = ecs.deploy(
+    deployed_task = ecs.deploy(
         ecs_data["cluster"],
         ecs_data["subnet_ids"],
         ecs_data["security_groups"],
@@ -90,7 +91,14 @@ def deploy(ecs_data, org, repo, branch, pr, author, image, sha, assume, tf_outpu
         stack_name,
         ecs_data["platform"],
         repo,
+        ecs_data["public_ip"],
     )
+
+    if ecs_data["public_ip"] == "ENABLED":
+        eni_id = ecs.get_task_eni_id(ecs_data["cluster"], deployed_task)
+        ip = ec2.get_public_ip(eni_id)
+    else:
+        ip = ecs.get_task_ip(ecs_data["cluster"], deployed_task)
 
     deployment_status = "success"
     if ip is None:

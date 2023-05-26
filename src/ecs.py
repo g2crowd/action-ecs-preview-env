@@ -72,6 +72,18 @@ def get_task_ip(cluster, task_arn):
     ]
 
 
+def get_task_eni_id(cluster, task_arn):
+    response = CLIENT.describe_tasks(
+        cluster=cluster,
+        tasks=[
+            task_arn,
+        ],
+    )
+    return response["tasks"][0]["containers"][0]["networkInterfaces"][0][
+        "attachmentId"
+    ]
+
+
 def is_task_running(cluster, task_arn):
     attempt = 0
     response = None
@@ -103,7 +115,7 @@ def stop_task(cluster, task_arn):
 
 
 def run_task(
-    cluster, subnets, security_groups, task_definition, started_by, platform, project
+    cluster, subnets, security_groups, task_definition, started_by, platform, project, public_ip
 ):
     response = CLIENT.run_task(
         cluster=cluster,
@@ -117,6 +129,7 @@ def run_task(
             "awsvpcConfiguration": {
                 "subnets": subnets,
                 "securityGroups": security_groups,
+                "assignPublicIp": public_ip,
             }
         },
         tags=[
@@ -157,13 +170,12 @@ def deploy(
         return None
 
     LOGGER.info("Deployed successfully")
-    ip = get_task_ip(cluster, deployed_task)
 
     if len(existing_tasks) > 0:
         LOGGER.info("Stopping previously deployed PR")
         for task in existing_tasks:
             stop_task(cluster, task)
-    return ip
+    return deployed_task
 
 
 def undeploy(cluster, started_by, task_family):
