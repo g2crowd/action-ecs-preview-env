@@ -79,9 +79,7 @@ def get_task_eni_id(cluster, task_arn):
             task_arn,
         ],
     )
-    return response["tasks"][0]["containers"][0]["networkInterfaces"][0][
-        "attachmentId"
-    ]
+    return response["tasks"][0]["attachments"][0]["details"][1]["value"]
 
 
 def is_task_running(cluster, task_arn):
