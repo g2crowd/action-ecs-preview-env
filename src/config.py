@@ -49,7 +49,8 @@ def parse_config(value, tf_outputs, assume_role):
                 LOGGER.error(
                     "%s environment variable does not exists" % result.group(2)
                 )
-            value = os.environ[result.group(2)]
+            res = os.environ[result.group(2)]
+            value = re.sub(pattern, res, value)
         return value
     elif type(value) == list:
         return [parse_config(i, tf_outputs, assume_role) for i in value]
