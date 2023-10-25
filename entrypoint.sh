@@ -15,10 +15,24 @@ fi
 BUILD_RESULT=$?
 if [ $BUILD_RESULT -eq 0 ]; then
   RESULT="true"
+  echo ::set-output name=lastStatus::"Running"
+else
+  echo ::set-output name=lastStatus::"Stopped"
 fi
 
 export $(cat .prenv_vars | xargs)
 echo $RESULT
 echo $TASK_ARN
+echo $RESULT
+echo $CLUSTER
+echo $SUBNETS
+echo $SECURITY_GROUPS
+echo $TASK_DEFINITION
+echo $STARTED_BY
 echo ::set-output name=success::$RESULT
-echo ::set-output name=task_arn::$TASK_ARN
+echo ::set-output name=arn::$TASK_ARN
+echo ::set-output name=cluster::$CLUSTER
+echo ::set-output name=subnets::$SUBNETS
+echo ::set-output name=securityGroups::$SECURITY_GROUPS
+echo ::set-output name=taskDefinition::$TASK_DEFINITION
+echo ::set-output name=startedBy::$STARTED_BY

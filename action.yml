@@ -32,8 +32,22 @@ inputs:
 outputs:
   success:
     description: Whether action was successful or not
-  task_arn:
+  arn:
     description: ARN of the task deployed
+  link:
+    description: Link of the deployed task
+  lastStatus:
+    description: Last status of the task
+  cluster:
+    description: Name of the cluster where task is deployed
+  taskDefinition:
+    description: Link to task definition used to deploy the task
+  securityGroups:
+    description: List of security groups attached to the task
+  subnets:
+    description: List of subnets attached to the task
+  startedBy:
+    description: The startedBy value
 
 runs:
   using: docker
