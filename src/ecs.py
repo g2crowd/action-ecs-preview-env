@@ -163,6 +163,7 @@ def deploy(
         public_ip
     )
     utils.export_env("TASK_ARN", deployed_task)
+    utils.export_env("TASK_ID", deployed_task.split("/")[-1])
     utils.export_env("CLUSTER", cluster)
     utils.export_env("SUBNETS", ','.join(subnets))
     utils.export_env("SECURITY_GROUPS", ','.join(security_groups))

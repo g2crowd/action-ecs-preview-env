@@ -23,6 +23,7 @@ fi
 export $(cat .prenv_vars | xargs)
 echo $RESULT
 echo $TASK_ARN
+echo $TASK_ID
 echo $RESULT
 echo $CLUSTER
 echo $SUBNETS
@@ -31,6 +32,7 @@ echo $TASK_DEFINITION
 echo $STARTED_BY
 echo ::set-output name=success::$RESULT
 echo ::set-output name=arn::$TASK_ARN
+echo ::set-output name=arnId::$TASK_ID
 echo ::set-output name=cluster::$CLUSTER
 echo ::set-output name=subnets::$SUBNETS
 echo ::set-output name=securityGroups::$SECURITY_GROUPS
