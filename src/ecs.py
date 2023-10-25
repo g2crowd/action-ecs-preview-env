@@ -163,6 +163,11 @@ def deploy(
         public_ip
     )
     utils.export_env("TASK_ARN", deployed_task)
+    utils.export_env("CLUSTER", cluster)
+    utils.export_env("SUBNETS", ','.join(subnets))
+    utils.export_env("SECURITY_GROUPS", ','.join(security_groups))
+    utils.export_env("TASK_DEFINITION", task_definition)
+    utils.export_env("STARTED_BY", started_by)
 
     if not ok:
         LOGGER.error("Deployment failed")
