@@ -20,12 +20,12 @@ DATABASE_CONFIG = "database_config.json"
 DEPLOYMENT_CONFIG = "deployment_config.json"
 
 
-def deploy(ecs_data, org, repo, branch, pr, author, image, sha, assume, tf_outputs):
+def deploy(ecs_data, org, repo, branch, pr, author, image, sha, assume, tf_outputs, stackname):
     task_definition_config = CONFIG_FILE_PATH + TASK_DEFINITION_CONFIG
     deployment_config = CONFIG_FILE_PATH + DEPLOYMENT_CONFIG
     database_config = CONFIG_FILE_PATH + DATABASE_CONFIG
     dns_name = None
-    stack_name = repo + pr
+    stack_name = repo + pr if stackname is None else stackname + pr
     task_family = "prenv-" + repo + "-" + pr
     assumed_creds = None
     os.environ["PRENV_ORG"] = org
@@ -115,9 +115,9 @@ def deploy(ecs_data, org, repo, branch, pr, author, image, sha, assume, tf_outpu
         route53.update_recordset(assumed_creds, hosted_zone, dns_name, ip)
 
 
-def undeploy(ecs_data, org, repo, pr, sha, assume, tf_outputs):
+def undeploy(ecs_data, org, repo, pr, sha, assume, tf_outputs, stackname):
     task_family = "prenv-" + repo + "-" + pr
-    stack_name = repo + pr
+    stack_name = repo + pr if stackname is None else stackname + pr
     assumed_creds = None
 
     if ecs_data.get("dns") is not None:
@@ -169,6 +169,7 @@ def main(command_line=None):
     prenv_deploy.add_argument("-s", "--sha", required=True)
     prenv_deploy.add_argument("-x", "--assume")
     prenv_deploy.add_argument("-t", "--tfstate")
+    prenv_deploy.add_argument("-t", "--stackname")
 
     prenv_undeploy.add_argument("-o", "--org", required=True)
     prenv_undeploy.add_argument("-r", "--repo", required=True)
@@ -176,6 +177,7 @@ def main(command_line=None):
     prenv_undeploy.add_argument("-s", "--sha", required=True)
     prenv_undeploy.add_argument("-x", "--assume")
     prenv_undeploy.add_argument("-t", "--tfstate")
+    prenv_undeploy.add_argument("-t", "--stackname")
 
     args = parser.parse_args(command_line)
 
@@ -202,10 +204,11 @@ def main(command_line=None):
             args.sha,
             args.assume,
             tf_outputs,
+            args.stackname
         )
     elif args.command == "undeploy":
         undeploy(
-            ecs_data, args.org, args.repo, args.pr, args.sha, args.assume, tf_outputs
+            ecs_data, args.org, args.repo, args.pr, args.sha, args.assume, tf_outputs, args.stackname
         )
     elif args.command == "cleanup":
         cleanup()

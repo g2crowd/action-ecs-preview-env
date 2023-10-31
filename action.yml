@@ -28,6 +28,8 @@ inputs:
     description: IAM role to be assumed for creating DNS recordset
   tfstate:
     description: Terraform state file S3 path
+  stackName:
+    description: Optional to override default stack name which is repo name
 
 outputs:
   success:
@@ -63,3 +65,4 @@ runs:
     - ${{ inputs.sha }}
     - ${{ inputs.assume }}
     - ${{ inputs.tfstate }}
+    - ${{ inputs.stackName }}
