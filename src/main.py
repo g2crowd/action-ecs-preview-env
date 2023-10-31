@@ -169,7 +169,7 @@ def main(command_line=None):
     prenv_deploy.add_argument("-s", "--sha", required=True)
     prenv_deploy.add_argument("-x", "--assume")
     prenv_deploy.add_argument("-t", "--tfstate")
-    prenv_deploy.add_argument("-t", "--stackname")
+    prenv_deploy.add_argument("-n", "--stackname")
 
     prenv_undeploy.add_argument("-o", "--org", required=True)
     prenv_undeploy.add_argument("-r", "--repo", required=True)
@@ -177,7 +177,7 @@ def main(command_line=None):
     prenv_undeploy.add_argument("-s", "--sha", required=True)
     prenv_undeploy.add_argument("-x", "--assume")
     prenv_undeploy.add_argument("-t", "--tfstate")
-    prenv_undeploy.add_argument("-t", "--stackname")
+    prenv_undeploy.add_argument("-n", "--stackname")
 
     args = parser.parse_args(command_line)
 
