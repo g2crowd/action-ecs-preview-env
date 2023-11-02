@@ -25,7 +25,7 @@ def deploy(ecs_data, org, repo, branch, pr, author, image, sha, assume, tf_outpu
     deployment_config = CONFIG_FILE_PATH + DEPLOYMENT_CONFIG
     database_config = CONFIG_FILE_PATH + DATABASE_CONFIG
     dns_name = None
-    stack_name = repo + pr if stackname is None else stackname + pr
+    stack_name = repo + pr if stackname == "NONE" else stackname + pr
     task_family = "prenv-" + repo + "-" + pr
     assumed_creds = None
     os.environ["PRENV_ORG"] = org
@@ -117,7 +117,7 @@ def deploy(ecs_data, org, repo, branch, pr, author, image, sha, assume, tf_outpu
 
 def undeploy(ecs_data, org, repo, pr, sha, assume, tf_outputs, stackname):
     task_family = "prenv-" + repo + "-" + pr
-    stack_name = repo + pr if stackname is None else stackname + pr
+    stack_name = repo + pr if stackname == "NONE" else stackname + pr
     assumed_creds = None
 
     if ecs_data.get("dns") is not None:

@@ -30,6 +30,8 @@ inputs:
     description: Terraform state file S3 path
   stackName:
     description: Optional to override default stack name which is repo name
+    required: false
+    default: "NONE"
 
 outputs:
   success:
