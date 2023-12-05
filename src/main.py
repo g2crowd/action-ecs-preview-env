@@ -143,9 +143,7 @@ def undeploy(ecs_data, org, repo, pr, sha, assume, tf_outputs, stackname):
     assumed_creds = None
     if assume is not None:
         assumed_creds = utils.assume_aws_role(assume)
-    if ip is None:
-        route53.check_and_remove_recordset(assumed_creds, hosted_zone, dns_name)
-    route53.remove_recordset(assumed_creds, hosted_zone, dns_name, str(ip))
+    route53.check_and_remove_recordset(assumed_creds, hosted_zone, dns_name)
 
 
 def cleanup():
